@@ -40,7 +40,7 @@ def print_info(obj):
     for (name, value) in inspect.getmembers(obj):
         print '%s: %r' % (name, value)
 
-class GtalkRobot:
+class GtalkRobot(object):
 
     ########################################################################################################################
     conn = None

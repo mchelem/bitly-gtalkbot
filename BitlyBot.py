@@ -2,6 +2,7 @@
 
 from xml.etree import ElementTree
 from PyGtalkRobot import GtalkRobot
+import bitly_api
 
 class BitlyBot(GtalkRobot):
     ''' A bot to save links to bitly 
@@ -17,37 +18,44 @@ class BitlyBot(GtalkRobot):
         '''(http[s]*://.+$)'''
         print "{0} entered a link: {1}. I'm saving it to bitly.".format(user, args[0])
 	self.usercommands.append([user.getStripped(), "add to bitly"])
-	self.replyMessage(user, "\nYour link just got eaten by the pufferfish!")
+        try:
+            self.bitly_connection.bundle_link_add(self.bitly_bundle, args[0])
+            self.replyMessage(user, "\nYour link just got eaten by the pufferfish!")
+        except bitly_api.BitlyError:
+            self.replyMessage(user, "\nSorry, the pufferfish is already full!")
 
 
-    # Shows help text
-    def command_003_help(self, user, message, args):
-	'''(help)'''
-	print user, "executed a command: help"
-	self.usercommands.append([user.getStripped(), "help"])
-	self.replyMessage(user, "\n I save links starting with http " + 
-            "or https to bitly. Try entering a URL, such as http://bit.ly")
 
-
-    # Default response. Overrides parent method to not behave like a parrot... 
+    # Default response (help)
     def command_100_default(self, user, message, args):
-        '''.*?(?s)(?m)'''
-	print user, "executed unknown command and will be ignored", args
-	self.usercommands.append([user.getStripped(), "unknown command ", message])
+        '''.*?(?s)(?m)$'''
+	print user, "said: {0}".format(message)
+	self.usercommands.append([user.getStripped(), "message"])
+	self.replyMessage(user, "\n I save links starting with http " + 
+            "or https to bitly ({0}). ".format(self.bitly_bundle) +
+            "Try entering a URL, such as http://bit.ly")
 
 
 def main():
-    doc = ElementTree.parse('resources/auth.xml')
+    doc = ElementTree.parse('settings.xml')
     try:
-        email = doc.find('Username').text
-        password = doc.find('Password').text
-	super_email = doc.find('Superuser').text
-    except:
-        print "Error in XML file format: auth.xml"
+        email = doc.find('email/username').text
+        password = doc.find('email/password').text
+	super_email = doc.find('email/superuser').text
+        bitly_bundle = doc.find('bitly/bundle_link').text
+        bitly_access_token = doc.find('bitly/access_token').text
 
-    bot = BitlyBot()
-    bot.setState('available', "I will save your links to bitly")
-    bot.start(email, password)
+        bot = BitlyBot()
+        bot.setState('available', 'I will save your links to bitly')
+
+        bot.bitly_bundle = bitly_bundle
+        bot.bitly_connection = bitly_api.Connection(
+            access_token=bitly_access_token)
+        
+        bot.start(email, password)
+    except:
+        print 'Error in XML file format: settings.xml'
+       
 
 
 if __name__ == "__main__":
