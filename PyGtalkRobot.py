@@ -1,7 +1,8 @@
 ﻿#!usr/bin/python
 # -*- coding: utf-8 -*-
 
-# PyGtalkRobot: A simple jabber/xmpp bot framework using Regular Expression Pattern as command controller
+# PyGtalkRobot: A simple jabber/xmpp bot framework using Regular Expression 
+# Pattern as command controller
 # Copyright (c) 2008 Demiao Lin <ldmiao@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -20,52 +21,26 @@
 # Homepage: http://code.google.com/p/pygtalkrobot/
 #
 
-import sys, traceback
-import xmpp
-import urllib
-import re
-import inspect
-
 """A simple jabber/xmpp bot framework
-
-This is a simple jabber/xmpp bot framework using Regular Expression Pattern as command controller.
-Copyright (c) 2008 Demiao Lin <ldmiao@gmail.com>
-
-To use, subclass the "GtalkRobot" class and implement "command_NUM_" methods
-(or whatever you set the command_prefix to), like sampleRobot.py.
-
 """
 
-def print_info(obj):
-    for (name, value) in inspect.getmembers(obj):
-        print '%s: %r' % (name, value)
+import sys, traceback
+import xmpp
+import re
+
+
 
 class GtalkRobot(object):
 
-    ########################################################################################################################
     conn = None
     show = "available"
     status = "PyGtalkRobot"
-    commands = None
-    command_prefix = 'command_'
-    GO_TO_NEXT_COMMAND = 'go_to_next'
-    ########################################################################################################################
+    commands = []
+
     
-    #Pattern Tips:
-    # I or IGNORECASE <=> (?i)      case insensitive matching
-    # L or LOCALE <=> (?L)          make \w, \W, \b, \B dependent on the current locale
-    # M or MULTILINE <=> (?m)       matches every new line and not only start/end of the whole string
-    # S or DOTALL <=> (?s)          '.' matches ALL chars, including newline
-    # U or UNICODE <=> (?u)         Make \w, \W, \b, and \B dependent on the Unicode character properties database.
-    # X or VERBOSE <=> (?x)         Ignores whitespace outside character sets
-    
-    #This method is the default action for all pattern in lowest priviledge
-    def command_999_default(self, user, message, args):
-        """.*?(?s)(?m)"""
+    def default_command(self, user, message, args):
         self.replyMessage(user, message)
 
-    ########################################################################################################################
-    #These following methods can be only used after bot has been successfully started
 
     #show : xa,away---away   dnd---busy   available--online
     def setState(self, show, status_text):
@@ -89,72 +64,69 @@ class GtalkRobot(object):
             pres=xmpp.Presence(priority=5, show=self.show, status=self.status)
             self.conn.send(pres)
 
+
     def getState(self):
         return self.show, self.status
+
 
     def replyMessage(self, user, message):
         self.conn.send(xmpp.Message(user, message))
 
+
     def getRoster(self):
         return self.conn.getRoster()
+
 
     def getResources(self, jid):
         roster = self.getRoster()
         if roster:
             return roster.getResources(jid)
 
+
     def getShow(self, jid):
         roster = self.getRoster()
         if roster:
             return roster.getShow(jid)
+
 
     def getStatus(self, jid):
         roster = self.getRoster()
         if roster:
             return roster.getStatus(jid)
 
+
     def authorize(self, jid):
         """ Authorise JID 'jid'. Works only if these JID requested auth previously. """
         self.getRoster().Authorize(jid)
     
-    ########################################################################################################################
-    def initCommands(self):
-        if self.commands:
-            self.commands.clear()
-        else:
-            self.commands = list()
-        for (name, value) in inspect.getmembers(self):
-            if inspect.ismethod(value) and name.startswith(self.command_prefix):
-                self.commands.append((value.__doc__, value))
-        #print self.commands
+
+    def add_command(self, command, pattern):
+        self.commands.append((pattern, command))
+
 
     def controller(self, conn, message):
+        matched = False
         text = message.getBody()
         user = message.getFrom()
+        
         if text:
             text = text.encode('utf-8', 'ignore')
-            if not self.commands:
-                self.initCommands()
-            for (pattern, bounded_method) in self.commands:
+            for (pattern, function) in self.commands:
                 match_obj = re.match(pattern, text)
                 if(match_obj):
                     try:
-                        return_value = bounded_method(user, text, match_obj.groups())
-                        if return_value == self.GO_TO_NEXT_COMMAND:
-                            pass
-                        else:
-                            break
-                    except:
-                        print_info(sys.exc_info())
-                        self.replyMessage(user, traceback.format_exc())
+                        return_value = function(self, user, text, match_obj.groups())
+                        break
+                    except Exception as e:
+                        print traceback.format_exc()
+                        self.replyMessage(user, 'I committed a grave error!')
+
 
     def presenceHandler(self, conn, presence):
-        #print presence
-        #print_info(presence)
         if presence:
             print "-"*100
             print presence.getFrom(), ",", presence.getFrom().getResource(), ",", presence.getType(), ",", presence.getShow()
-            if presence.getType()=='subscribe':
+            if presence.getType() == 'subscribe':
                 jid = presence.getFrom().getStripped()
                 self.authorize(jid)
 
@@ -163,6 +135,7 @@ class GtalkRobot(object):
         try:
             self.conn.Process(1)
         except KeyboardInterrupt: 
+            print 'Bye!'
             return 0
         return 1
 
@@ -171,11 +144,19 @@ class GtalkRobot(object):
         while self.StepOn(): pass
 
 
-    ########################################################################################################################
-    # "debug" parameter specifies the debug IDs that will go into debug output.
-    # You can either specifiy an "include" or "exclude" list. The latter is done via adding "always" pseudo-ID to the list.
-    # Full list: ['nodebuilder', 'dispatcher', 'gen_auth', 'SASL_auth', 'bind', 'socket', 'CONNECTproxy', 'TLS', 'roster', 'browser', 'ibb'].
     def __init__(self, server_host="talk.google.com", server_port=5223, debug=[]):
+        """
+            :param debug: specifies the debug IDs that will go into debug output
+            :type debug: list
+            
+            You can either specifiy an "include" or "exclude" list. 
+            The latter is done via adding "always" pseudo-ID to the list.
+            
+            Full list: [
+                'nodebuilder', 'dispatcher', 'gen_auth', 'SASL_auth', 'bind', 
+                'socket', 'CONNECTproxy', 'TLS', 'roster', 'browser', 'ibb',
+            ]
+        """
         self.debug = debug
         self.server_host = server_host
         self.server_port = server_port
@@ -183,18 +164,21 @@ class GtalkRobot(object):
 
 
     def start(self, gmail_account, password):
-        jid=xmpp.JID(gmail_account)
+        """ Connect to the server and starts handling incoming messages.
+        """
+        jid = xmpp.JID(gmail_account)
         user, server, password = jid.getNode(), jid.getDomain(), password
         
-        self.conn=xmpp.Client(server, debug=self.debug)
-        conres=self.conn.connect()
+        self.conn = xmpp.Client(server, debug=self.debug)
+        conres = self.conn.connect()
         if not conres:
-            print "Unable to connect to server %s!"%server
+            print "Unable to connect to server {0}!".format(server)
             sys.exit(1)
         
-        authres=self.conn.auth(user, password)
+        authres = self.conn.auth(user, password)
         if not authres:
-            print "Unable to authorize on %s - Please check your name/password."%server
+            print "Unable to authorize on {0} -".format(server),\
+                "Please check your name/password."
             sys.exit(1)
         
         self.conn.RegisterHandler("message", self.controller)
@@ -204,10 +188,3 @@ class GtalkRobot(object):
         
         print "Bot started."
         self.GoOn()
-
-
-
-if __name__ == "__main__":
-    bot = GtalkRobot()
-    bot.setState('available', "PyGtalkRobot")
-    bot.start("PyGtalkRobot@gmail.com", "PyGtalkRobotByLdmiao")
