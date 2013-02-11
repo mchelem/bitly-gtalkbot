@@ -1,5 +1,8 @@
 A bot that saves links, starting with http/https, to bitly.
 
+It can be added by you and your friends. 
+Whenever it gets a message from someone other than the super user, it forwards it to the super user.
+
 If you define a bundle in the settings file, all the links will be saved to
 that bundle.
 
