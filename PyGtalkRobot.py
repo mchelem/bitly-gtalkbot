@@ -37,10 +37,6 @@ class GtalkRobot(object):
     status = "PyGtalkRobot"
     commands = []
 
-    
-    def default_command(self, user, message, args):
-        self.replyMessage(user, message)
-
 
     #show : xa,away---away   dnd---busy   available--online
     def setState(self, show, status_text):

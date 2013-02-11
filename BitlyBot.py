@@ -29,6 +29,12 @@ class BitlyBot(GtalkRobot):
     """ A bot to save links to bitly 
     """
 
+    def __init__(self, *args, **kwargs):
+        super(BitlyBot, self, *args, **kwargs).__init__()
+        self.bitly_bundle = None 
+        self.bitly_connection = None
+
+
     @bot_command('(http[s]*://.+$)')
     def save_to_bitly(self, user, message, args):
         """ Saves links (starting with http or https) to bitly
@@ -37,12 +43,22 @@ class BitlyBot(GtalkRobot):
         :param message: the text as entered by the user
         :param args: the list of parameters as matched on the regex
         """
-        print "{0} entered a link: {1}. I'm saving it to bitly.".format(
-                user, args[0])
+        print "{0} entered a link: {1}.".format(user, args[0])
         try:
-            self.bitly_connection.bundle_link_add(self.bitly_bundle, args[0])
-            self.replyMessage(user, "Your link just got eaten by the pufferfish!")
-        except bitly_api.BitlyError:
+            if self.bitly_connection:
+
+                # Either save it on the declared bundle or not into any bundle
+                if self.bitly_bundle:
+                    self.bitly_connection.bundle_link_add(self.bitly_bundle, args[0])
+                else:
+                    self.bitly_connection.user_link_save(args[0])
+
+                self.replyMessage(user, "Your link just got eaten by the pufferfish!")
+            else:
+                self.replyMessage(user, "The pufferfish is not around!")
+
+        except bitly_api.BitlyError as error:
+            print error
             self.replyMessage(user, "Sorry, the pufferfish is already full!")
 
 
@@ -72,10 +88,10 @@ def main():
     bot = BitlyBot()
     bot.setState('available', 'I will save your links to bitly')
 
-    bot.bitly_bundle = bitly_bundle
     bot.bitly_connection = bitly_api.Connection(
         access_token=bitly_access_token)
-    
+    bot.bitly_bundle = bitly_bundle
+
     bot.start(email, password)
        
 

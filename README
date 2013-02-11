@@ -1,5 +1,7 @@
-A bot that saves links, starting with http/https, to a bitly bundle.
+A bot that saves links, starting with http/https, to bitly.
 
-It uses PygtalkRobot, an open source python gtalk bot framework using XMPPPY library 
-http://code.google.com/p/pygtalkrobot/
+If you define a bundle in the settings file, all the links will be saved to
+that bundle.
 
+This project uses PygtalkRobot, an open source python gtalk bot framework 
+using XMPPPY library: http://code.google.com/p/pygtalkrobot/
