@@ -8,46 +8,29 @@ class BitlyBot(GtalkRobot):
         
     In order to use GtalkRobot functionallity, the following must hold:
     - The commands must follow the pattern command_XXX
-    - The method documentation must be a regex to match the text typed in
-        by the user
+    - The method documentation must be a regex to match the text typed in by
+        the user (that's why I added the docs as a comment before the methods)
     '''
 
+    # Saves links (starting with http or https) to bitly
     def command_001_saveToBitly(self, user, message, args):
-        # Saves links (starting with http or https) to bitly
         '''(http[s]*://.+$)'''
-        print "{0} entered a link: {1}".format(user, args[0])
-        print "I'm saving it to bitly"
+        print "{0} entered a link: {1}. I'm saving it to bitly.".format(user, args[0])
 	self.usercommands.append([user.getStripped(), "add to bitly"])
 	self.replyMessage(user, "\nYour link just got eaten by the pufferfish!")
 
 
-    def command_002_calculate(self, user, message, args):
-        # Simple calculator implementation
-	'''(^\d+(\.[0-9]+)?(e[0-9]+|E[0-9]+)?\s*(\+|\*|/|-)+\s*(\d+(\.[0-9]+)?(e[0-9]+|E[0-9]+)?)$)'''
-	print user, "executed command: Calculator"
-	self.usercommands.append([user.getStripped(), "calculator"])
-	try:
-		value = eval(message)
-	except:
-		self.replyMessage(user, "Error in arithmetic expression")
-	else:
-		self.replyMessage(user, value)
-
-
+    # Shows help text
     def command_003_help(self, user, message, args):
-	# 
 	'''(help)'''
-	print user, "executed command: help"
+	print user, "executed a command: help"
 	self.usercommands.append([user.getStripped(), "help"])
-	self.replyMessage(user, "\nBesides saving your links " +
-            "(starting with http or https) to bitly, " +
-            "I can also evaluate arithmetic expressions! " +
-            "Try entering http://bit.ly or 40 + 2")
+	self.replyMessage(user, "\n I save links starting with http " + 
+            "or https to bitly. Try entering a URL, such as http://bit.ly")
 
 
+    # Default response. Overrides parent method to not behave like a parrot... 
     def command_100_default(self, user, message, args):
-        # Default response. Overrides parent method to not act like a parrot, 
-        # repeating everything...
         '''.*?(?s)(?m)'''
 	print user, "executed unknown command and will be ignored", args
 	self.usercommands.append([user.getStripped(), "unknown command ", message])
