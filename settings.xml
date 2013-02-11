@@ -1,0 +1,11 @@
+<settings>
+    <email>
+      <username>--bot-user--</username>
+      <password>--bot-pass--</password>
+      <superuser>--your-user--</superuser>
+    </email>
+    <bitly>
+        <access_token>--bitly access token--</access_token>
+        <bundle_link>--the bundle you want to save to--</bundle_link>
+    </bitly>
+</settings>
