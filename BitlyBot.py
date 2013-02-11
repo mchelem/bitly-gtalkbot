@@ -4,6 +4,8 @@ from xml.etree import ElementTree
 from PyGtalkRobot import GtalkRobot
 import bitly_api
 
+
+
 class BitlyBot(GtalkRobot):
     ''' A bot to save links to bitly 
         
@@ -17,7 +19,6 @@ class BitlyBot(GtalkRobot):
     def command_001_saveToBitly(self, user, message, args):
         '''(http[s]*://.+$)'''
         print "{0} entered a link: {1}. I'm saving it to bitly.".format(user, args[0])
-	self.usercommands.append([user.getStripped(), "add to bitly"])
         try:
             self.bitly_connection.bundle_link_add(self.bitly_bundle, args[0])
             self.replyMessage(user, "\nYour link just got eaten by the pufferfish!")
@@ -25,12 +26,10 @@ class BitlyBot(GtalkRobot):
             self.replyMessage(user, "\nSorry, the pufferfish is already full!")
 
 
-
     # Default response (help)
     def command_100_default(self, user, message, args):
         '''.*?(?s)(?m)$'''
 	print user, "said: {0}".format(message)
-	self.usercommands.append([user.getStripped(), "message"])
 	self.replyMessage(user, "\n I save links starting with http " + 
             "or https to bitly ({0}). ".format(self.bitly_bundle) +
             "Try entering a URL, such as http://bit.ly")
@@ -56,7 +55,6 @@ def main():
     except:
         print 'Error in XML file format: settings.xml'
        
-
 
 if __name__ == "__main__":
     main()
