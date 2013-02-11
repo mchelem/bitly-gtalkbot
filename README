@@ -1,10 +1,13 @@
 A bot that saves links, starting with http/https, to bitly.
 
-It can be added by you and your friends. 
-Whenever it gets a message from someone other than the super user, it forwards it to the super user.
+Run it using your email address as the superuser, and your bitly access token.
+Then, the bot can be added by you and your friends. Whenever someone sends a message, it will be forwarded to you.
 
 If you define a bundle in the settings file, all the links will be saved to
 that bundle.
+
+I use it as a very practical way to exchange links between computers (gtalk opens a window automatically), 
+while saving the links to bitly.
 
 This project uses PygtalkRobot, an open source python gtalk bot framework 
 using XMPPPY library: http://code.google.com/p/pygtalkrobot/
