@@ -1,7 +1,5 @@
 A bot that saves links, starting with http/https, to a bitly bundle.
 
-It also does some basic arithmetics (through eval)
-
-Uses PygtalkRobot, an open source python gtalk bot framework using XMPPPY library 
+It uses PygtalkRobot, an open source python gtalk bot framework using XMPPPY library 
 http://code.google.com/p/pygtalkrobot/
 
