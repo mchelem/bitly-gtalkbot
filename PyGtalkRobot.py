@@ -96,10 +96,6 @@ class GtalkRobot(object):
         self.getRoster().Authorize(jid)
     
 
-    def add_command(self, command, pattern):
-        self.commands.append((pattern, command))
-
-
     def controller(self, conn, message):
         matched = False
         text = message.getBody()
